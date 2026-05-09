@@ -1,0 +1,22 @@
+# FastAPI + server
+fastapi==0.115.12
+uvicorn==0.34.2
+python-multipart==0.0.20
+
+# PDF extraction
+PyPDF2==3.0.1
+
+# Text Splitter
+langchain-text-splitters==0.3.8
+
+# Embeddings & Generation
+sentence-transformers==3.4.1
+transformers==4.47.1
+torch --index-url https://download.pytorch.org/whl/cpu
+google-generativeai==0.8.3
+
+# Vector store
+chromadb==0.6.3
+
+# Data validation
+pydantic==2.11.4

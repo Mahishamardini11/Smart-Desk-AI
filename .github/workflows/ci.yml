@@ -1,0 +1,60 @@
+name: SmartDesk CI Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Cache npm dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: npm-${{ hashFiles('frontend/package-lock.json') }}
+          restore-keys: npm-
+
+      - name: Install & build frontend
+        run: |
+          cd frontend
+          npm ci --prefer-offline
+          npm run build
+
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Cache Maven local repo
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: maven-${{ hashFiles('backend/pom.xml') }}
+          restore-keys: maven-
+
+      - name: Build backend
+        run: |
+          cd backend
+          ./mvnw clean install -DskipTests -B
+
+  ai-service:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Cache pip packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ hashFiles('ai-service/requirements.txt') }}
+          restore-keys: pip-
+
+      - name: Install AI service dependencies
+        run: |
+          cd ai-service
+          pip install -r requirements.txt

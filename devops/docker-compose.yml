@@ -1,20 +1,40 @@
-version: "3.9"
+# ── All custom images share this build config ─────────────────────────────────
+x-build-defaults: &build-defaults
+  args:
+    BUILDKIT_INLINE_CACHE: "1"   # Bakes cache metadata into layers for faster rebuilds
 
 services:
   frontend:
-    build: ../frontend
+    build:
+      context: ../frontend
+      <<: *build-defaults
     ports:
       - "3000:3000"
+    volumes:
+      - ../frontend:/app
+      - /app/node_modules   # Prevents local node_modules from overwriting the container's
 
   backend:
-    build: ../backend
+    build:
+      context: ../backend
+      <<: *build-defaults
     ports:
       - "8080:8080"
+    environment:
+      - AI_SERVICE_URL=http://ai-service:8000
+    depends_on:
+      - postgres
+      - redis
+      - ai-service
 
   ai-service:
-    build: ../ai-service
+    build:
+      context: ../ai-service
+      <<: *build-defaults
     ports:
       - "8000:8000"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
 
   postgres:
     image: postgres:16
@@ -24,8 +44,13 @@ services:
       POSTGRES_PASSWORD: smartdesk123
     ports:
       - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data   # persist DB between restarts
 
   redis:
-    image: redis:latest
+    image: redis:7-alpine                        # pin to a slim, stable tag
     ports:
       - "6379:6379"
+
+volumes:
+  postgres_data:
